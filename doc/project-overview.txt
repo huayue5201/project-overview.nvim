@@ -1,0 +1,46 @@
+*project-overview.txt*  一屏项目概览
+
+==============================================================================
+CONTENTS                                            *project-overview*
+
+1. 命令与键位 ................................ |project-overview-usage|
+2. 配置 ...................................... |project-overview-config|
+3. API ....................................... |project-overview-api|
+
+==============================================================================
+1. 命令与键位                                       *project-overview-usage*
+
+  :ProjectOverview        精简版
+  :ProjectOverview!       完整版
+  :ProjectOverviewAsk     带概览问 AI（需 ask 回调）
+  :ProjectOverviewChat    概览放进 chat（需 chat 回调）
+
+窗口内：q/<Esc> 关闭，t 精简⇄完整，r 重新采集，gd 跳文件。
+命令名和键位都可通过 setup 覆盖；键位默认不注册。
+
+==============================================================================
+2. 配置                                             *project-overview-config*
+
+>lua
+  require("project_overview").setup({
+    keys = false,
+    commands = { open = "ProjectOverview", ask = "ProjectOverviewAsk", chat = "ProjectOverviewChat" },
+    buffer_scheme = "project-overview://",
+    resolve_root = nil,
+    ask = nil,
+    chat = nil,
+    digest_contract = nil, -- nil 默认；false 关闭；字符串自定义
+    bridge_action = "project",
+  })
+<
+==============================================================================
+3. API                                                *project-overview-api*
+
+  open(opts)              { full?, root?, force? }
+  digest(data, opts)      紧凑摘要；opts.contract
+  bridge(req)             { root?, path?, full?, wait_ms? } -> digest
+  ask(opts) / chat(opts)  走配置的回调
+  setup(opts)             注册命令与键位
+
+==============================================================================
+vim:tw=78:ts=8:noet:ft=help:norl:

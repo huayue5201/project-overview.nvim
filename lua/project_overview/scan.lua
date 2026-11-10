@@ -127,7 +127,7 @@ local function parse_wc(stdout)
 		comments = nil,
 		blanks = nil,
 		source = "wc -l（含注释与空行，按扩展名猜语言）",
-		files = files,
+		files = vim.tbl_count(filelines),
 	}
 end
 

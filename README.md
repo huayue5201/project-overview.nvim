@@ -1,16 +1,16 @@
 # project-overview.nvim
 
-一屏看清一个项目：身份 / 规模 / 目录结构 / 最近活跃区 / 构建入口 / 依赖 / 约定。
-非 git 目录也能用（直接按目录统计）。
+Understand a project at a glance: identity / size / directory layout / hot spots / build entry points / dependencies / conventions.
+Works outside git too (falls back to plain directory stats).
 
-- `:ProjectOverview` 精简版，`:ProjectOverview!` 完整版
-- 窗口内：`q` / `<Esc>` 关闭，`t` 精简⇄完整，`r` 重新采集，`gd` 跳到光标下的文件
-- 采集并行异步（tokei / git log），按 repo + HEAD 缓存
-- 语言行数优先 tokei，没有则回落 `git ls-files + wc -l`
-- 概览 buffer 是只读 markdown（`project-overview://...`），可 yank / 搜索 / 跳转
-- AI / chat 集成通过回调注入，插件本身零业务依赖
+- `:ProjectOverview` compact view, `:ProjectOverview!` full view
+- In the window: `q` / `<Esc>` close, `t` toggle compact⇄full, `r` refresh, `gd` jump to the file under the cursor
+- Collection runs async in parallel (tokei / git log), cached per repo + HEAD
+- Line counts prefer tokei, falling back to `git ls-files + wc -l`
+- The overview buffer is read-only markdown (`project-overview://...`), so you can yank / search / jump
+- AI / chat integration is done by injecting callbacks; the plugin has no business dependencies of its own
 
-## 安装
+## Installation
 
 ```lua
 {
@@ -25,65 +25,65 @@
 }
 ```
 
-## 配置
+## Configuration
 
 ```lua
 require("project_overview").setup({
-  keys = false, -- 或 { open=..., ask=..., chat=... }；默认不注册全局键
+  keys = false, -- or { open=..., ask=..., chat=... }; no global keys are registered by default
   commands = {
     open = "ProjectOverview",
-    ask = "ProjectOverviewAsk",   -- 仅当 ask 回调存在时注册
-    chat = "ProjectOverviewChat", -- 仅当 chat 回调存在时注册
+    ask = "ProjectOverviewAsk",   -- only registered when the ask callback exists
+    chat = "ProjectOverviewChat", -- only registered when the chat callback exists
   },
   buffer_scheme = "project-overview://",
-  resolve_root = function(opts) return "/path/to/root" end, -- 可选
+  resolve_root = function(opts) return "/path/to/root" end, -- optional
   ask = function(digest, tokens, opts) end,
   chat = function(digest, tokens, opts) end,
-  digest_contract = nil, -- nil = 默认阅读契约；false = 不附加；字符串 = 自定义
+  digest_contract = nil, -- nil = default reading contract; false = none; string = custom
   bridge_action = "project",
 })
 ```
 
-### ask / chat 回调
+### ask / chat callbacks
 
 ```lua
 ask = function(text, tokens, opts)
   require("my_ai").ask({
-    note = ("概览 ~%d tok"):format(tokens),
+    note = ("overview ~%d tok"):format(tokens),
     extension = { digest = text },
   })
 end,
 ```
 
-回调抛错会被插件捕获并 `vim.notify(..., WARN)`。
+Errors thrown by a callback are caught by the plugin and reported with `vim.notify(..., WARN)`.
 
 ## API
 
-- `open(opts)`：`{ full?, root?, force? }`
-- `digest(data, opts)`：把采集数据压成紧凑摘要，`opts.contract` 控制阅读契约
-- `bridge(req)`：按 root 返回 digest（给外部 agent / RPC），`{ root?, path?, full?, wait_ms? }`
-- `ask(opts)` / `chat(opts)`：走当前配置的回调
-- `setup(opts)`：注册命令与键位
+- `open(opts)`: `{ full?, root?, force? }`
+- `digest(data, opts)`: compress collected data into a compact digest; `opts.contract` controls the reading contract
+- `bridge(req)`: returns a digest for a root (for external agents / RPC), `{ root?, path?, full?, wait_ms? }`
+- `ask(opts)` / `chat(opts)`: invoke the currently configured callbacks
+- `setup(opts)`: register commands and keymaps
 
-## 依赖
+## Requirements
 
-- 必需：Neovim >= 0.10、`git`（可选，没有就按目录统计）
-- 可选：`tokei`（更准确的行数统计）
-- 非 git 兜底统计在 macOS/Linux 上依赖 `sh` / `find` / `wc`
+- Required: Neovim >= 0.10, `git` (optional; without it, plain directory stats are used)
+- Optional: `tokei` (more accurate line counts)
+- The non-git fallback relies on `sh` / `find` / `wc` on macOS/Linux
 
-## 渲染器集成
+## Renderer integration
 
-概览 buffer 的名字以 `buffer_scheme` 开头，markdown 渲染器应按此前缀跳过它：
+The overview buffer name starts with `buffer_scheme`; markdown renderers should skip it by that prefix:
 
 ```lua
 if name:match("^project%-overview://") then return true end
 ```
 
-高亮组：`ProjectOverviewIcon`、`ProjectOverviewDirIcon`、`ProjectOverviewNumber`、
-`ProjectOverviewKey`、`ProjectOverviewPath`、`ProjectOverviewDim`、
-`ProjectOverviewOk`、`ProjectOverviewWarn`。
+Highlight groups: `ProjectOverviewIcon`, `ProjectOverviewDirIcon`, `ProjectOverviewNumber`,
+`ProjectOverviewKey`, `ProjectOverviewPath`, `ProjectOverviewDim`,
+`ProjectOverviewOk`, `ProjectOverviewWarn`.
 
-## 测试
+## Tests
 
 ```sh
 ./tests/run.sh
